@@ -83,26 +83,26 @@ jobs:
             coverage.out
             coverage.html
 
-  #     # -----------------------------
-  #     # Trivy Dependency Check (SCA)
-  #     # -----------------------------
-  #     - name: Trivy FS Scan (SCA)
-  #       run: |
-  #         mkdir -p trivy-report
+      # -----------------------------
+      # Trivy Dependency Check (SCA)
+      # -----------------------------
+      - name: Trivy FS Scan (SCA)
+        run: |
+          mkdir -p trivy-report
 
-  #         docker run --rm \
-  #           -v ${{ github.workspace }}:/project \
-  #           -v ${{ github.workspace }}/trivy-report:/report \
-  #           aquasec/trivy:0.50.0 \
-  #           fs /project \
-  #           --format json \
-  #           --output /report/trivy-report.json      
+          docker run --rm \
+            -v ${{ github.workspace }}:/project \
+            -v ${{ github.workspace }}/trivy-report:/report \
+            aquasec/trivy:0.50.0 \
+            fs /project \
+            --format json \
+            --output /report/trivy-report.json      
 
-  #     - name: Upload Trivy Report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: trivy-report
-  #         path: ./trivy-report
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: ./trivy-report
 
   #     # ---------------------
   #     # SonarCloud SAST Scan
