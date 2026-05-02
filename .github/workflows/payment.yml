@@ -59,15 +59,29 @@ jobs:
       - name: Build App
         run: go build -o app ./cmd/app
 
-      # - name: Check coverage
-      #   run: |
-      #     ls -l coverage/    
+      # -------------------------------
+      # Stage 2: Code Coverage
+      # -------------------------------
 
-      # - name: Upload Test Report
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-report
-      #     path: junit.xml
+      - name: Run Tests with Coverage
+        run: |
+          go test ./... -covermode=atomic -coverprofile=coverage.out
+
+      - name: Show Coverage Summary
+        run: |
+          go tool cover -func=coverage.out
+
+      - name: Generate HTML Report
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.out
+            coverage.html
 
   #     # -----------------------------
   #     # Trivy Dependency Check (SCA)
