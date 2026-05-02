@@ -108,12 +108,23 @@ jobs:
       # SonarCloud SAST Scan
       # ---------------------
       - name: SonarCloud SAST Scan
-        continue-on-error: true # ----------> Because Code Coverage below then 80%
+        #continue-on-error: true # ----------> Because Code Coverage below then 80%
         if: github.ref == 'refs/heads/main'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GT_PAT }}
           SONAR_TOKEN: ${{ secrets.scm }}
+        with:
+          args: >
+            -Dsonar.projectKey=wezva-fintech_payment-build
+            -Dsonar.organization=wezva-fintech
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/*_test.go,vendor/**
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.go.coverage.reportPaths=coverage.out
+            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.qualitygate.wait=true #For quality gate
 
   #     # -----------------------------
   #     # Configure AWS Credentials
