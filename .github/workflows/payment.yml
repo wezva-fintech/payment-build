@@ -3,10 +3,7 @@ name: payment go language build and scan
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - feature
 
   workflow_dispatch:
     inputs:
@@ -151,7 +148,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ inputs.ECRURL || '081654307023.dkr.ecr.ap-south-1.amazonaws.com' }}
           REPOSITORY: ${{ inputs.APPREPO || 'wezvatechpayment' }}
-          IMAGE_TAG: rel${{ github.run_number }}
+          IMAGE_TAG: fb${{ github.run_number }}
         run: |
           echo "Building Docker Image..."
           docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
@@ -166,7 +163,7 @@ jobs:
           for i in {1..12}; do
             STATUS=$(aws ecr describe-image-scan-findings \
               --repository-name ${{ inputs.APPREPO || 'wezvatechpayment' }} \
-              --image-id imageTag=rel${{ github.run_number }} \
+              --image-id imageTag=fb${{ github.run_number }} \
               --query 'imageScanStatus.status' \
               --output text 2>/dev/null || echo "NOT_FOUND")
 
@@ -196,13 +193,13 @@ jobs:
         run: |
           CRITICAL=$(aws ecr describe-image-scan-findings \
             --repository-name ${{ inputs.APPREPO || 'wezvatechpayment' }} \
-            --image-id imageTag=rel${{ github.run_number }} \
+            --image-id imageTag=fb${{ github.run_number }} \
             --query 'imageScanFindings.findingSeverityCounts.CRITICAL' \
             --output text 2>/dev/null || echo 0)
 
           HIGH=$(aws ecr describe-image-scan-findings \
             --repository-name ${{ inputs.APPREPO || 'wezvatechpayment' }} \
-            --image-id imageTag=rel${{ github.run_number }} \
+            --image-id imageTag=fb${{ github.run_number }} \
             --query 'imageScanFindings.findingSeverityCounts.HIGH' \
             --output text 2>/dev/null || echo 0)
 
@@ -238,7 +235,7 @@ jobs:
     steps:
       - name: Trigger CD Pipeline
         run: |
-          IMAGE_TAG="rel${{ github.run_number }}"
+          IMAGE_TAG="fb${{ github.run_number }}"
 
           curl -X POST \
           -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
@@ -250,6 +247,6 @@ jobs:
               \"ECRURL\": \"${{ inputs.ECRURL }}/\",
               \"REPO\": \"${{ inputs.APPREPO }}\",
               \"IMAGE\": \"$IMAGE_TAG\",
-              \"TEST\": \"regression\"
+              \"TEST\": \"functional\"
             }
           }"
