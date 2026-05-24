@@ -1,4 +1,4 @@
-name: payment go language build and scan
+name: payment build and scan
 
 on:
   push:
