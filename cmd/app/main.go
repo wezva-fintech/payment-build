@@ -28,10 +28,15 @@ func main() {
 		dbName = "library"
 	}
 
-	dbPass := os.Getenv("DB_PASS")
-	if dbPass == "" {
-		dbPass = "my-deault-password"
-	}
+    dbUser := os.Getenv("DB_USER")
+    if dbUser == "" {
+	    dbUser = "root"
+    }
+
+    dbPass := os.Getenv("DB_PASSWORD")
+    if dbPass == "" {
+	    dbPass = "my-default-password"
+    }
 
 	apiPath := os.Getenv("API_PATH")
 	if apiPath == "" {
@@ -47,13 +52,14 @@ func main() {
 	        fmt.Fprint(w, "ok")
 	}).Methods("GET")
 
-	ch := handlers.ConfigHandler {
-		Config: &config.Config{
-			Password: dbPass,
-			Addr:     dbHost,
-			DBName:   dbName,
-		},
-	}
+    ch := handlers.ConfigHandler{
+	    Config: &config.Config{
+		    User:     dbUser,
+		    Password: dbPass,
+		    Addr:     dbHost,
+		    DBName:   dbName,
+	},
+}
 
 	router.HandleFunc(apiPath, ch.GetBooks).Methods("GET")
 	router.HandleFunc(apiPath+"/{id}", ch.GetBookByID).Methods("GET")
