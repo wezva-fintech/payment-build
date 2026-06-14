@@ -28,15 +28,15 @@ func main() {
 		dbName = "library"
 	}
 
-    dbUser := os.Getenv("DB_USER")
-    if dbUser == "" {
-	    dbUser = "root"
-    }
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "root"
+	}
 
-    dbPass := os.Getenv("DB_PASSWORD")
-    if dbPass == "" {
-	    dbPass = "my-default-password"
-    }
+	dbPass := os.Getenv("DB_PASSWORD")
+	if dbPass == "" {
+		dbPass = "my-default-password"
+	}
 
 	apiPath := os.Getenv("API_PATH")
 	if apiPath == "" {
@@ -45,21 +45,49 @@ func main() {
 
 	router := mux.NewRouter()
 
-        router.Handle("/metrics", promhttp.Handler())
+	// Prometheus metrics
+	router.Handle("/metrics", promhttp.Handler())
 
+	// Liveness probe
 	router.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-        	w.WriteHeader(http.StatusOK)
-	        fmt.Fprint(w, "ok")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "Payment is Live Now")
 	}).Methods("GET")
 
-    ch := handlers.ConfigHandler{
-	    Config: &config.Config{
-		    User:     dbUser,
-		    Password: dbPass,
-		    Addr:     dbHost,
-		    DBName:   dbName,
-	},
-}
+	// Readiness probe
+	router.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+
+		cfg := config.Config{
+			User:     dbUser,
+			Password: dbPass,
+			Addr:     dbHost,
+			DBName:   dbName,
+		}
+
+		db, err := cfg.Connect()
+		if err != nil {
+			http.Error(w, "database unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		defer db.Close()
+
+		if err := db.Ping(); err != nil {
+			http.Error(w, "database unavailable", http.StatusServiceUnavailable)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "Payment is Ready Now")
+	}).Methods("GET")
+
+	ch := handlers.ConfigHandler{
+		Config: &config.Config{
+			User:     dbUser,
+			Password: dbPass,
+			Addr:     dbHost,
+			DBName:   dbName,
+		},
+	}
 
 	router.HandleFunc(apiPath, ch.GetBooks).Methods("GET")
 	router.HandleFunc(apiPath+"/{id}", ch.GetBookByID).Methods("GET")
@@ -69,8 +97,8 @@ func main() {
 	router.HandleFunc(apiPath+"/{id}", ch.DeleteBookByID).Methods("DELETE")
 
 	log.Println("Server starting on :8081")
+
 	if err := http.ListenAndServe(":8081", router); err != nil {
 		log.Fatalf("error while listening: %v", err)
-		return
 	}
 }
