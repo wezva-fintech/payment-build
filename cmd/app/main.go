@@ -51,7 +51,7 @@ func main() {
 	// Liveness probe
 	router.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "Payment is Live Now-Stable")
+		fmt.Fprint(w, "Payment is Live Now-canary")
 	}).Methods("GET")
 
 // Readiness probe
@@ -73,7 +73,7 @@ func main() {
 	    }
 
 	    w.WriteHeader(http.StatusOK)
-	    fmt.Fprint(w, "Payment is Ready Now-Stable")
+	    fmt.Fprint(w, "Payment is Ready Now-canary")
     }).Methods("GET")
 
 	ch := handlers.ConfigHandler{
