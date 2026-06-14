@@ -54,31 +54,27 @@ func main() {
 		fmt.Fprint(w, "Payment is Live Now")
 	}).Methods("GET")
 
-	// Readiness probe
-	router.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+// Readiness probe
+    router.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 
-		cfg := config.Config{
-			User:     dbUser,
-			Password: dbPass,
-			Addr:     dbHost,
-			DBName:   dbName,
-		}
+	    cfg := config.Config{
+		    User:     dbUser,
+		    Password: dbPass,
+		    Addr:     dbHost,
+		    DBName:   dbName,
+	    }
 
-		db, err := cfg.Connect()
-		if err != nil {
-			http.Error(w, "database unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		defer db.Close()
+	    db := cfg.OpenConnection()
+	    defer cfg.CloseConnection(db)
 
-		if err := db.Ping(); err != nil {
-			http.Error(w, "database unavailable", http.StatusServiceUnavailable)
-			return
-		}
+	    if err := db.Ping(); err != nil {
+		    http.Error(w, "database unavailable", http.StatusServiceUnavailable)
+		    return
+	    }
 
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "Payment is Ready Now")
-	}).Methods("GET")
+	    w.WriteHeader(http.StatusOK)
+	    fmt.Fprint(w, "Payment is Ready Now")
+    }).Methods("GET")
 
 	ch := handlers.ConfigHandler{
 		Config: &config.Config{
